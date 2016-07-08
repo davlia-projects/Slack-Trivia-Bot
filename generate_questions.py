@@ -8,10 +8,11 @@ def banned(banned, phrase):
                 return True
     return False
 
-bl = ["hm", "hehe", "ha ha", "he he", "tower", "barracks", "ancient", "first blood"]
-f = open('r.json')
-g = open('s.json', 'w')
+bl = ["hm", "hehe", "ha", "heh", "tower", "barracks", "ancient", "first", "bag"]
+f = open('data/r.json')
+g = open('data/s.json', 'w')
 content = json.load(f)
+content[-1]['responses'] = content[-1]['responses'][::2]
 added = {}
 skip = False
 for c in content:
@@ -21,10 +22,27 @@ for c in content:
     responses = c['responses']
     added_resp = []
     for resp in responses:
-        if len(resp.split(" ")) > 12 and not banned(bl, resp.lower()):
-            print k , resp, len(resp.split(" "))
+        tokens = set([x.lower() for x in resp.split(" ")])
+        tokens.add(k.lower())
+        if len(tokens) > 6 and not tokens.intersection(set(bl)) and not k.lower() in resp.lower():
+            print k , resp
             added_resp.append(resp)
-    added[k] = added_resp
+    added[k] = list(set(added_resp))
 
+topop = ["Warlock's Golem", "Announcer", "Portal Pack", "Shopkeeper"]
+for t in topop:
+    added.pop(t)
 
-added.pop("Warlock's Golem")
+o = open('data/questions.json', 'a')
+o.write('[')
+id = 0
+for k,v in added.items():
+    for quote in v:
+        out = '{"id": "%s","prompt": "Dota Hero by quote: %s","answer": "%s"},\n' % (id, quote.replace('\"', "'"), k)
+        id += 1
+        try:
+            o.write(out)
+        except:
+            continue
+o.write(']')
+
