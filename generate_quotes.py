@@ -24,7 +24,7 @@ for c in content:
     for resp in responses:
         tokens = set([x.lower() for x in resp.split(" ")])
         tokens.add(k.lower())
-        if len(tokens) > 6 and not tokens.intersection(set(bl)) and not k.lower() in resp.lower():
+        if len(tokens) > 10 and not tokens.intersection(set(bl)) and not k.lower() in resp.lower():
             print k , resp
             added_resp.append(resp)
     added[k] = list(set(added_resp))
@@ -38,11 +38,10 @@ o.write('[')
 id = 0
 for k,v in added.items():
     for quote in v:
-        out = '{"id": "%s","prompt": "Dota Hero by quote: %s","answer": "%s"},\n' % (id, quote.replace('\"', "'"), k)
+        out = '{\n\t"id": "%s",\n\t"prompt": "Dota Hero by quote: %s", \n\t"answer": "%s"\n},\n' % (id, quote.replace('\"', "'"), k)
         id += 1
         try:
             o.write(out)
         except:
             continue
 o.write(']')
-
