@@ -1,0 +1,24 @@
+{
+  "name": "dota-2-slack-bot",
+  "version": "1.0.0",
+  "description": "twitch slack has never been brighter",
+  "main": "index.js",
+  "bin": {
+    "dota-2-slack-bot": "bot.js"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davlia/dota-2-slack-trivia-bot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/davlia/dota-2-slack-trivia-bot/issues"
+  },
+  "homepage": "https://github.com/davlia/dota-2-slack-trivia-bot#readme"
+}
