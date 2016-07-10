@@ -36,7 +36,7 @@ let scrapeHeroMetadata = () => {
       let $ = cheerio.load(html);
       let heroSkills = [];
       if ($('.col-8').text() === '') {
-        console.log(`Grabbing data failed for ${elem.hero}`);
+        console.log(`Grabbing data failed for ${e.hero}`);
         failures++;
       }
       // grabs skills
@@ -80,7 +80,7 @@ let scrapeHeroMetadata = () => {
         heroStats[name] = value;
       });
       heroes.push({
-        hero: elem.hero,
+        hero: e.hero,
         stats: heroStats,
         skills: heroSkills,
       });
@@ -178,6 +178,6 @@ let scrapeItemMetadata = () => {
   });
 };
 
-// scrapeHeroMetadata();
+scrapeHeroMetadata();
 // scrapeItems();
 // scrapeItemMetadata();
