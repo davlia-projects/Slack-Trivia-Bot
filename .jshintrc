@@ -1,14 +1,14 @@
 {
-  globalstrict: true,
-  globals: {
-    angular: false,
-    esversion: 6,
-    describe: false,
-    it: false,
-    expect: false,
-    beforeEach: false,
-    afterEach: false,
-    module: false,
-    inject: false
+  "globalstrict": true,
+  "globals": {
+    "angular": false,
+    "esversion": 6,
+    "describe": false,
+    "it": false,
+    "expect": false,
+    "beforeEach": false,
+    "afterEach": false,
+    "module": false,
+    "inject": false
   }
 }
