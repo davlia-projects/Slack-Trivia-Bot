@@ -16,13 +16,10 @@ content.heroes.forEach((e,i) => {
   });
 });
 
-// console.log(`Hero URLs ${heroURLs}`);
-// heroURLs = heroURLs.slice(0,4);
 let heroes = [];
 let failures = 0;
 
 heroURLs.forEach((e,i,a) => {
-  // console.log(url);
   let opts = {
     url: e.url,
     headers: {
@@ -36,10 +33,11 @@ heroURLs.forEach((e,i,a) => {
     }
     let $ = cheerio.load(html);
     let heroSkills = [];
-    if ($('.col-8 section').text() === '') {
-      console.log(e.hero);
+    if ($('.col-8').text() === '') {
+      console.log(`Grabbing data failed for ${e.hero}`);
       failures++;
     }
+    // grabs skills
     $('.col-8 section').each((index, elem) => {
       let skillName = $(elem).find('header').contents().filter((index, elem) => {
         return elem.type === 'text';
@@ -70,6 +68,11 @@ heroURLs.forEach((e,i,a) => {
         stats: skillStats,
       });
     });
+
+    $('.col-8 .hero_attributes other tr').each((index, elem) => {
+      console.log(elem);
+    });
+
     heroes.push({
       hero: e.hero,
       skills: heroSkills,
@@ -77,7 +80,6 @@ heroURLs.forEach((e,i,a) => {
   });
   if (heroes.length === heroURLs.length - failures) {
     let out = JSON.stringify(heroes, null, 4);
-    console.log(heroes.length);
     fs.writeFileSync("skills.json", out);
   }
 });
