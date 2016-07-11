@@ -32,7 +32,8 @@ let generateItemQuestions = () => {
   let itemQuestions = [];
   items.forEach((elem, index) => {
     // unscramble
-    let shuffled = utils.shuffle(elem.name).toLowerCase().replace(/\s/g, '');
+    elem.name = elem.name.replace(/\(.*\)/g, '');
+    let shuffled = utils.shuffle(elem.name).toLowerCase().replace(/\s/g, '').replace(/-/g, '');
     itemQuestions.push({
       id: questionId++,
       type: questionType,

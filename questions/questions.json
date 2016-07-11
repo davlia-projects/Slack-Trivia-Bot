@@ -8007,7 +8007,7 @@
         "id": 1334,
         "type": "Hero",
         "prompt": "Morphling Skill Name: Morphling shifts its form, pulling points from Strength and pouring them into Agility. The process is reversible. Additional points in Morph increase the rate of stat change. Passively grants bonus Agility.",
-        "answer": "Morph (Agility Gain)"
+        "answer": "Morph"
     },
     {
         "id": 1335,
@@ -8085,7 +8085,7 @@
         "id": 1347,
         "type": "Hero",
         "prompt": "Morphling Skill Name: Morphling shifts its form, pulling points from Agility and pouring them into Strength. The process is reversible. Additional points in Morph increase the rate of stat change. Passively grants bonus Strength.",
-        "answer": "Morph (Strength Gain)"
+        "answer": "Morph"
     },
     {
         "id": 1348,
@@ -42687,7 +42687,7 @@
         "id": 7114,
         "type": "Item",
         "prompt": "Unscramble the item name: rtoans()gahde",
-        "answer": "Tango (Shared)"
+        "answer": "Tango"
     },
     {
         "id": 7115,
