@@ -32,7 +32,7 @@ let generateItemQuestions = () => {
   let itemQuestions = [];
   items.forEach((elem, index) => {
     // unscramble
-    elem.name = elem.name.replace(/\(.*\)/g, '');
+    elem.name = elem.name.replace(/\s\(.*\)/g, '');
     let shuffled = utils.shuffle(elem.name).toLowerCase().replace(/\s/g, '').replace(/-/g, '');
     itemQuestions.push({
       id: questionId++,
@@ -87,6 +87,9 @@ let generateItemQuestions = () => {
         answer: `${stat.value}`
       });
     });
+  });
+  itemQuestions.forEach((elem, index) => {
+    elem.answer = elem.answer.replace(/\.0$/g, '');
   });
   return itemQuestions;
 };
