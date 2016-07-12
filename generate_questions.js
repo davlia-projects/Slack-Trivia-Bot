@@ -88,9 +88,6 @@ let generateItemQuestions = () => {
       });
     });
   });
-  itemQuestions.forEach((elem, index) => {
-    elem.answer = elem.answer.replace(/\.0$/g, '');
-  });
   return itemQuestions;
 };
 
@@ -167,11 +164,20 @@ let generateHeroQuestions = () => {
   return heroQuestions;
 };
 
+let postProcess = (arr, func) => {
+  for (let q in arr) {
+    arr[q].answer = arr[q].answer.replace(/\.0%?$/g, '');
+  }
+  return arr;
+};
+
 let compileQuestions = () => {
-  return [].concat(
-    generateQuoteQuestions(),
-    generateHeroQuestions(),
-    generateItemQuestions()
+  return postProcess(
+    [].concat(
+      generateQuoteQuestions(),
+      generateHeroQuestions(),
+      generateItemQuestions()
+    )
   );
 };
 
