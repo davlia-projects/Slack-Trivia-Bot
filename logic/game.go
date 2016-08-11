@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"fmt"
 	"log"
 	"math"
 	"math/rand"
@@ -55,7 +56,7 @@ func NewGame(conf config.Config) (*Game, error) {
 	return g, nil
 }
 
-func (G *Game) GetNewQuestion() error {
+func (G *Game) NewQuestion() error {
 	G.CurrentQuestion = &Question{
 		Category: "Testing",
 		Prompt:   "Prompt",
@@ -64,14 +65,10 @@ func (G *Game) GetNewQuestion() error {
 	return nil
 }
 
-func (G *Game) GetNextHint() error {
+func (G *Game) NextHint() error {
 	question := G.CurrentQuestion
 	hint := G.CurrentHint
 	length := len(question.Answer)
-	if hint.Count >= G.Config.MaxHintCount ||
-		hint.Revealed > length/2 {
-		return nil
-	}
 	if hint == nil {
 		pat, err := regexp.Compile(`\w`)
 		if err != nil {
@@ -79,29 +76,35 @@ func (G *Game) GetNextHint() error {
 		}
 		stars := string(pat.ReplaceAll([]byte(question.Prompt), []byte("*")))
 		hint := &Hint{
-			Stars: stars,
-			Count: 1,
+			Stars:    stars,
+			Count:    1,
+			Revealed: 0,
 		}
 		G.CurrentHint = hint
+	} else if hint.Count >= G.Config.MaxHintCount || hint.Revealed > length/2 {
+		return nil
 	} else {
 		newHint := []string{}
-		tokens := strings.Split(hint.Stars, " ")
+		hintTokens := strings.Split(hint.Stars, " ")
+		ansTokens := strings.Split(G.CurrentQuestion.Answer, " ")
 		offset := 0
-		for _, token := range tokens {
-			chars := strings.Split(token, "")
+		for t := range hintTokens {
+			hintChars := strings.Split(hintTokens[t], "")
+			ansChars := strings.Split(ansTokens[t], "")
 			for {
-				index := rand.Intn(len(chars))
-				if chars[index] != "*" {
-					chars[index] = "*"
+				index := rand.Intn(len(hintChars))
+				if hintChars[index] == "*" {
+					hintChars[index] = ansChars[index]
 					break
 				}
 			}
-			newHint = append(newHint, strings.Join(chars, ""))
-			offset += len(token) + 1
+			newHint = append(newHint, strings.Join(hintChars, ""))
+			offset += len(hintTokens[t]) + 1
 			hint.Revealed++
 		}
 		hint.Count++
 		hint.Stars = strings.Join(newHint, " ")
+		fmt.Printf("%s\n", strings.Join(newHint, " "))
 	}
 	return nil
 }
@@ -112,31 +115,40 @@ func (G *Game) ResetGuesses() {
 	}
 }
 
-func (G *Game) StartRound() error {
-	G.PastQuestions = append(G.PastQuestions, G.CurrentQuestion)
-	err := G.GetNewQuestion()
+func (G *Game) NewRound() error {
+	if G.CurrentQuestion != nil {
+		G.PastQuestions = append(G.PastQuestions, G.CurrentQuestion)
+	}
+	G.CurrentQuestion = nil
+	G.CurrentHint = nil
+	G.ResetGuesses()
+	err := G.NewQuestion()
 	if err != nil {
 		log.Fatalf("error: could not get new question (%+v)\n", err)
 	}
-	G.ResetGuesses()
 	return err
 }
 
 func (G *Game) MakeGuess(guess string, pid string) (bool, bool) {
+	player := G.Players[pid]
 	if rawString(guess) == rawString(G.CurrentQuestion.Answer) {
-		player := G.Players[pid]
 		awardedPoints := math.Max(float64(G.Config.MaxPoints-player.Guesses), 0)
 		player.Score += int(awardedPoints)
 		player.Streak++
 		streakChange := G.PlayerWithStreak == pid
 		G.PlayerWithStreak = pid
-		G.CurrentQuestion = nil
-		G.CurrentHint = nil
 		return true, streakChange
 	} else {
-		player := G.Players[pid]
 		player.Guesses++
 		return false, false
+	}
+}
+
+func (G *Game) ClearStreak() {
+	for _, player := range G.Players {
+		if player.ID != G.PlayerWithStreak {
+			player.Streak = 0
+		}
 	}
 }
 

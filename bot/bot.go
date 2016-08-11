@@ -18,7 +18,7 @@ var (
 	defaultConfig config.Config = config.Config{
 		MaxPoints:    5,
 		MaxHintCount: 3,
-		HintDelay:    8,
+		HintDelay:    5,
 		QuestionTime: 30,
 	}
 	client *c.Client                   = c.GetClient()

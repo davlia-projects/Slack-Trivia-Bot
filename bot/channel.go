@@ -51,27 +51,32 @@ func (C *Channel) MakeGuess(guess, pid string) {
 		C.HintTicker.Stop()
 		C.QuestionTimer.Stop()
 		if streakChange {
+			C.GameInstance.ClearStreak()
 			C.sendMessage("Correct answer with streak change")
 		} else {
 			C.sendMessage("Correct answer without streak change")
 		}
+		if C.ContinuousMode {
+			C.QuestionCommand()
+		}
 	}
 }
 
-// QuestionCommand returns a question if it exists. Otherwise it will create one and return it.
+// QuestionCommand returns a question if it exists. Otherwise it will start a new round create one.
 func (C *Channel) QuestionCommand() {
 	if C.GameInstance.CurrentQuestion == nil {
-		C.GameInstance.GetNewQuestion()
+		C.GameInstance.NewRound()
 		C.HintTicker = time.NewTicker(time.Second * C.Config.HintDelay)
 		C.QuestionTimer = time.NewTimer(time.Second * C.Config.QuestionTime)
 		go func() {
 			for _ = range C.HintTicker.C {
-				C.sendMessage("Next Hint")
+				C.GameInstance.NextHint()
+				C.sendMessage(C.GameInstance.CurrentHint.Stars)
 			}
 		}()
 		go func() {
 			<-C.QuestionTimer.C
-			C.sendMessage("Reveal the solution")
+			C.sendMessage(C.GameInstance.CurrentQuestion.Answer)
 			C.HintTicker.Stop()
 		}()
 	}
