@@ -6,12 +6,9 @@ import (
 	"math/rand"
 	"regexp"
 	"strings"
-)
 
-type Config struct {
-	MaxPoints    int
-	MaxHintCount int
-}
+	"github.com/dota-2-slack-bot/config"
+)
 
 type Player struct {
 	ID      string
@@ -38,13 +35,22 @@ type Game struct {
 	CurrentHint      *Hint
 	PastQuestions    []*Question
 	PlayerWithStreak string
-	Players          map[string]*Player
-	Config           Config
+	Players          map[string]*Player // maps pid to player
+	Config           config.Config
 }
 
-func NewGame(conf Config) (*Game, error) {
+func NewPlayer(id, name string) *Player {
+	p := &Player{
+		ID:   id,
+		Name: name,
+	}
+	return p
+}
+
+func NewGame(conf config.Config) (*Game, error) {
 	g := &Game{
-		Config: conf,
+		Config:  conf,
+		Players: map[string]*Player{},
 	}
 	return g, nil
 }
@@ -124,12 +130,26 @@ func (G *Game) MakeGuess(guess string, pid string) (bool, bool) {
 		player.Streak++
 		streakChange := G.PlayerWithStreak == pid
 		G.PlayerWithStreak = pid
+		G.CurrentQuestion = nil
+		G.CurrentHint = nil
 		return true, streakChange
 	} else {
 		player := G.Players[pid]
 		player.Guesses++
 		return false, false
 	}
+}
+
+func (G *Game) GetPlayerByPID(pid string) *Player {
+	player, ok := G.Players[pid]
+	if !ok {
+		return nil
+	}
+	return player
+}
+
+func (G *Game) CreatePlayer(pid, name string) {
+	G.Players[pid] = NewPlayer(pid, name)
 }
 
 func rawString(str string) string {

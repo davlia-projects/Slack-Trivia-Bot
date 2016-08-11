@@ -4,69 +4,65 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/dota-2-slack-bot/logic"
+	c "github.com/dota-2-slack-bot/client"
+	"github.com/dota-2-slack-bot/config"
+
 	"github.com/nlopes/slack"
 )
 
-type Channel struct {
-	GameInstance *logic.Game
-}
-
 type Bot struct {
-	API      *slack.Client
-	RTM      *slack.RTM
 	Channels map[string]*Channel
 }
 
-var defaultConfig logic.Config = logic.Config{
-	MaxPoints:    5,
-	MaxHintCount: 5,
-}
+var (
+	defaultConfig config.Config = config.Config{
+		MaxPoints:    5,
+		MaxHintCount: 3,
+		HintDelay:    8,
+		QuestionTime: 30,
+	}
+	client *c.Client                   = c.GetClient()
+	params slack.PostMessageParameters = slack.NewPostMessageParameters()
+)
 
 func NewBot() *Bot {
-	client := slack.New("xoxb-57834688131-S4MhbAfABG2iURPN0HhzwGYb")
 	s := &Bot{
-		API:      client,
-		RTM:      client.NewRTM(),
 		Channels: map[string]*Channel{},
 	}
 	return s
 }
 
 func (B *Bot) onStart() {
-	channels, err := B.API.GetChannels(true)
+	params.AsUser = true
+	channels, err := client.API.GetChannels(true)
 	if err != nil {
 		log.Fatalf("error: could not retrieve list of channels (%+v)\n", err)
 	}
 	for _, channel := range channels {
 		if channel.IsMember {
-			newGame, err := logic.NewGame(defaultConfig)
-			if err != nil {
-				log.Printf("error: could not create new game instance (%+v)\n", err)
-				continue
-			}
-			B.Channels[channel.ID] = &Channel{
-				GameInstance: newGame,
-			}
+			B.Channels[channel.ID] = NewChannel(defaultConfig, channel.Name, channel.ID)
 		}
 	}
 }
 
 func (B *Bot) HandleMessageEvent(ev *slack.MessageEvent) {
-	fmt.Printf("Message: %+v\n", ev)
+	fmt.Printf("%+v\n", ev)
+	channel := B.Channels[ev.Channel]
 	switch ev.Text {
 	case "!q":
-
+		channel.QuestionCommand()
 	case "!h":
-
+		channel.HintCommand()
 	case "!c":
-
+		channel.ContinuousModeOn()
 	case "!o":
-
+		channel.ContinuousModeOff()
 	case "!s":
-
+		channel.GetStatsForPlayer(ev.User)
+	case "!debug":
+		client.API.PostMessage(ev.Channel, "debug", params)
 	default:
-
+		channel.MakeGuess(ev.Text, ev.User)
 	}
 }
 
@@ -78,11 +74,11 @@ func (B *Bot) HandleChannelJoinedEvent(ev *slack.ChannelJoinedEvent) {
 
 func (B *Bot) Run() {
 	B.onStart()
-	go B.RTM.ManageConnection()
+	go client.RTM.ManageConnection()
 Loop:
 	for {
 		select {
-		case msg := <-B.RTM.IncomingEvents:
+		case msg := <-client.RTM.IncomingEvents:
 			switch ev := msg.Data.(type) {
 			case *slack.ConnectedEvent:
 				fmt.Printf("Connected\n")
