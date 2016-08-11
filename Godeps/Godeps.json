@@ -1,7 +1,7 @@
 {
-	"ImportPath": "dota-2-slack-bot",
+	"ImportPath": "github.com/dota-2-slack-bot",
 	"GoVersion": "go1.6",
-	"GodepVersion": "v70",
+	"GodepVersion": "v74",
 	"Packages": [
 		"./..."
 	],
@@ -13,7 +13,7 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/websocket",
-			"Rev": "6acef71eb69611914f7a30939ea9f6e194c78172"
+			"Rev": "075e191f18186a8ff2becaf64478e30f4545cdad"
 		}
 	]
 }
