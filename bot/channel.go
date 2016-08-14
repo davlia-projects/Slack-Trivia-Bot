@@ -3,6 +3,7 @@ package bot
 import (
 	"fmt"
 	"log"
+	"math"
 	"time"
 
 	"github.com/dota-2-slack-bot/config"
@@ -46,13 +47,15 @@ func (C *Channel) MakeGuess(guess, pid string) {
 		}
 		C.GameInstance.CreatePlayer(pid, user.Name)
 	}
+	player := C.GameInstance.GetPlayerByPID(pid)
 	correct, streakChange := C.GameInstance.MakeGuess(guess, pid)
 	if correct {
 		C.HintTicker.Stop()
 		C.QuestionTimer.Stop()
 		if streakChange {
 			C.GameInstance.ClearStreak()
-			C.sendMessage("Correct answer with streak change")
+			awarded := math.Max(float64(C.Config.MaxPoints-player.Guesses), 1)
+			C.sendMessage(fmt.Sprintf("%s is correct. +%d points (total score: %d streak: %d)", player.Name, awarded, player.Score, player.Streak))
 		} else {
 			C.sendMessage("Correct answer without streak change")
 		}

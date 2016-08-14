@@ -132,7 +132,7 @@ func (G *Game) NewRound() error {
 func (G *Game) MakeGuess(guess string, pid string) (bool, bool) {
 	player := G.Players[pid]
 	if rawString(guess) == rawString(G.CurrentQuestion.Answer) {
-		awardedPoints := math.Max(float64(G.Config.MaxPoints-player.Guesses), 0)
+		awardedPoints := math.Max(float64(G.Config.MaxPoints-player.Guesses), 1)
 		player.Score += int(awardedPoints)
 		player.Streak++
 		streakChange := G.PlayerWithStreak == pid

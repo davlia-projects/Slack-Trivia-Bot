@@ -1,13 +1,10 @@
 package client
 
 import (
+	"os"
 	"sync"
 
 	"github.com/nlopes/slack"
-)
-
-const (
-	APIKey = "xoxb-57834688131-S4MhbAfABG2iURPN0HhzwGYb"
 )
 
 var (
@@ -22,7 +19,8 @@ type Client struct {
 
 func GetClient() *Client {
 	once.Do(func() {
-		api := slack.New(APIKey)
+		apiKey := os.Getenv("BOT_API_KEY")
+		api := slack.New(apiKey)
 		client = &Client{
 			API: api,
 			RTM: api.NewRTM(),

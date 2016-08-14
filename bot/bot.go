@@ -62,13 +62,15 @@ func (B *Bot) HandleMessageEvent(ev *slack.MessageEvent) {
 	case "!debug":
 		client.API.PostMessage(ev.Channel, "debug", params)
 	default:
-		channel.MakeGuess(ev.Text, ev.User)
+		if ev.SubType == "" {
+			channel.MakeGuess(ev.Text, ev.User)
+		}
 	}
 }
 
 func (B *Bot) HandleChannelJoinedEvent(ev *slack.ChannelJoinedEvent) {
 	fmt.Printf("Joined channel %s\n", ev.Channel.Name)
-	B.Channels[ev.Channel.ID] = &Channel{}
+	B.Channels[ev.Channel.ID] = NewChannel(defaultConfig, ev.Channel.Name, ev.Channel.ID)
 
 }
 
