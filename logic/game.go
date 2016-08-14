@@ -3,7 +3,6 @@ package logic
 import (
 	"fmt"
 	"log"
-	"math"
 	"math/rand"
 	"regexp"
 	"strings"
@@ -129,19 +128,8 @@ func (G *Game) NewRound() error {
 	return err
 }
 
-func (G *Game) MakeGuess(guess string, pid string) (bool, bool) {
-	player := G.Players[pid]
-	if rawString(guess) == rawString(G.CurrentQuestion.Answer) {
-		awardedPoints := math.Max(float64(G.Config.MaxPoints-player.Guesses), 1)
-		player.Score += int(awardedPoints)
-		player.Streak++
-		streakChange := G.PlayerWithStreak == pid
-		G.PlayerWithStreak = pid
-		return true, streakChange
-	} else {
-		player.Guesses++
-		return false, false
-	}
+func (G *Game) MakeGuess(guess string) bool {
+	return rawString(guess) == rawString(G.CurrentQuestion.Answer)
 }
 
 func (G *Game) ClearStreak() {

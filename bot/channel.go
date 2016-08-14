@@ -48,20 +48,24 @@ func (C *Channel) MakeGuess(guess, pid string) {
 		C.GameInstance.CreatePlayer(pid, user.Name)
 	}
 	player := C.GameInstance.GetPlayerByPID(pid)
-	correct, streakChange := C.GameInstance.MakeGuess(guess, pid)
-	if correct {
+	isCorrect := C.GameInstance.MakeGuess(guess)
+	if isCorrect {
 		C.HintTicker.Stop()
 		C.QuestionTimer.Stop()
+		awardedPoints := math.Max(float64(G.Config.MaxPoints-player.Guesses), 1)
+		player.Score += int(awardedPoints)
+		player.Streak++
 		if streakChange {
 			C.GameInstance.ClearStreak()
-			awarded := math.Max(float64(C.Config.MaxPoints-player.Guesses), 1)
-			C.sendMessage(fmt.Sprintf("%s is correct. +%d points (total score: %d streak: %d)", player.Name, awarded, player.Score, player.Streak))
+			C.sendMessage(fmt.Sprintf("%s is correct. +%d points (total score: %d streak: %d)", player.Name, awardedPoints, player.Score, player.Streak))
 		} else {
-			C.sendMessage("Correct answer without streak change")
+			C.sendMessage(fmt.Sprintf("%s is correct. +%d points (total score: %d streak: %d)", player.Name, awardedPoints, player.Score, player.Streak))
 		}
 		if C.ContinuousMode {
 			C.QuestionCommand()
 		}
+	} else {
+		player.Guesses++
 	}
 }
 
