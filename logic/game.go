@@ -159,6 +159,14 @@ func (G *Game) GetPlayerByPID(pid string) *Player {
 	return player
 }
 
+func (G *Game) GetPlayerWithStreak() *Player {
+	if G.PlayerWithStreak == "" {
+		return nil
+	} else {
+		return G.Players[G.PlayerWithStreak]
+	}
+}
+
 func (G *Game) CreatePlayer(pid, name string) {
 	G.Players[pid] = NewPlayer(pid, name)
 }

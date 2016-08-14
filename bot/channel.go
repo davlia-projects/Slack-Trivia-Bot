@@ -53,8 +53,10 @@ func (C *Channel) MakeGuess(guess, pid string) {
 		C.QuestionTimer.Stop()
 		awardedPoints, streakChange := C.GameInstance.Correct(pid)
 		if streakChange {
+			oldPlayer := C.GameInstance.GetPlayerWithStreak()
+			oldStreak := oldPlayer.Streak
 			C.GameInstance.SetNewStreak(pid)
-			C.sendMessage(fmt.Sprintf("%s is correct. +%d points (total score: %d streak: %d)", player.Name, awardedPoints, player.Score, player.Streak))
+			C.sendMessage(fmt.Sprintf("%s is correct. +%d points (total score: %d streak: %d). %s's %d win streak has been ended!", player.Name, awardedPoints, player.Score, player.Streak, oldPlayer.Name, oldStreak))
 		} else {
 			C.sendMessage(fmt.Sprintf("%s is correct. +%d points (total score: %d streak: %d)", player.Name, awardedPoints, player.Score, player.Streak))
 		}
