@@ -1,6 +1,10 @@
 package client
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/url"
 	"sync"
 
 	. "github.com/dota-2-slack-bot/models"
@@ -22,10 +26,25 @@ func GetQuestionClient() *QuestionClient {
 }
 
 func (Q *QuestionClient) NewQuestion() *Question {
-	q := &Question{
-		Prompt:   "Prompt",
-		Answer:   "Answer",
-		Category: "Category",
+	url := &url.URL{
+		Scheme: "http",
+		Host:   "localhost",
+		Path:   "question",
 	}
-	return q
+	resp, err := http.Get(url.String())
+	if err != nil {
+		fmt.Errorf("error: couldn't get question (%+v)\n", err)
+		return nil
+	}
+	if resp.StatusCode >= 500 {
+		fmt.Errorf("error: gateway error (%d)\n", resp.StatusCode)
+		return nil
+	}
+	var question *Question
+	decoder := json.NewDecoder(resp.Body)
+	if err := decoder.Decode(question); err != nil {
+		fmt.Errorf("error: couldn't unmarshall question (%+v)\n", err)
+		return nil
+	}
+	return question
 }
