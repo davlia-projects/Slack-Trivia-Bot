@@ -21,14 +21,6 @@ type Game struct {
 	Config           config.Config
 }
 
-func NewPlayer(id, name string) *Player {
-	p := &Player{
-		ID:   id,
-		Name: name,
-	}
-	return p
-}
-
 func NewGame(conf config.Config) (*Game, error) {
 	g := &Game{
 		Config:  conf,
