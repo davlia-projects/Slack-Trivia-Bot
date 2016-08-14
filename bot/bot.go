@@ -11,7 +11,7 @@ import (
 )
 
 type Bot struct {
-	Channels map[string]*Channel
+	Channels map[string]*GameInstance
 }
 
 var (
@@ -28,7 +28,7 @@ var (
 
 func NewBot() *Bot {
 	s := &Bot{
-		Channels: map[string]*Channel{},
+		Channels: map[string]*GameInstance{},
 	}
 	return s
 }

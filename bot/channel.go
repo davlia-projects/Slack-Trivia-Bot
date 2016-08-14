@@ -12,9 +12,9 @@ import (
 
 // var client *c.Client = c.GetClient()
 
-type Channel struct {
+type GameInstance struct {
 	ID             string
-	GameInstance   *logic.Game
+	Game           *logic.Game
 	ContinuousMode bool
 	Name           string
 	HintTicker     *time.Ticker
@@ -22,41 +22,41 @@ type Channel struct {
 	Config         config.Config
 }
 
-func NewChannel(conf config.Config, name, id string) *Channel {
+func NewChannel(conf config.Config, name, id string) *GameInstance {
 	newGame, err := logic.NewGame(conf)
 	if err != nil {
 		log.Printf("error: could not create new game instance (%+v)\n", err)
 	}
-	c := &Channel{
-		ID:           id,
-		GameInstance: newGame,
-		Name:         name,
-		Config:       conf,
+	c := &GameInstance{
+		ID:     id,
+		Game:   newGame,
+		Name:   name,
+		Config: conf,
 	}
 	return c
 }
 
-func (C *Channel) MakeGuess(guess, pid string) {
-	if C.GameInstance.CurrentQuestion == nil || pid == "" || guess == "" {
+func (C *GameInstance) MakeGuess(guess, pid string) {
+	if C.Game.CurrentQuestion == nil || pid == "" || guess == "" {
 		return
 	}
-	if C.GameInstance.GetPlayerByPID(pid) == nil {
+	if C.Game.GetPlayerByPID(pid) == nil {
 		user, err := slackClient.API.GetUserInfo(pid)
 		if err != nil {
 			fmt.Printf("error: could not get user info %d (%+v)\n", pid, err)
 		}
-		C.GameInstance.CreatePlayer(pid, user.Name)
+		C.Game.CreatePlayer(pid, user.Name)
 	}
-	player := C.GameInstance.GetPlayerByPID(pid)
-	isCorrect := C.GameInstance.MakeGuess(guess)
+	player := C.Game.GetPlayerByPID(pid)
+	isCorrect := C.Game.MakeGuess(guess)
 	if isCorrect {
 		C.HintTicker.Stop()
 		C.QuestionTimer.Stop()
-		awardedPoints, streakChange := C.GameInstance.Correct(pid)
+		awardedPoints, streakChange := C.Game.Correct(pid)
 		if streakChange {
-			oldPlayer := C.GameInstance.GetPlayerWithStreak()
+			oldPlayer := C.Game.GetPlayerWithStreak()
 			oldStreak := oldPlayer.Streak
-			C.GameInstance.SetNewStreak(pid)
+			C.Game.SetNewStreak(pid)
 			C.sendMessage(fmt.Sprintf("%s is correct. +%d points (total score: %d streak: %d). %s's %d win streak has been ended!", player.Name, awardedPoints, player.Score, player.Streak, oldPlayer.Name, oldStreak))
 		} else {
 			C.sendMessage(fmt.Sprintf("%s is correct. +%d points (total score: %d streak: %d)", player.Name, awardedPoints, player.Score, player.Streak))
@@ -70,52 +70,52 @@ func (C *Channel) MakeGuess(guess, pid string) {
 }
 
 // QuestionCommand returns a question if it exists. Otherwise it will start a new round create one.
-func (C *Channel) QuestionCommand() {
-	if C.GameInstance.CurrentQuestion == nil {
-		C.GameInstance.Reset()
-		C.GameInstance.CurrentQuestion = questionClient.NewQuestion()
+func (C *GameInstance) QuestionCommand() {
+	if C.Game.CurrentQuestion == nil {
+		C.Game.Reset()
+		C.Game.CurrentQuestion = questionClient.NewQuestion()
 		C.HintTicker = time.NewTicker(time.Second * C.Config.HintDelay)
 		C.QuestionTimer = time.NewTimer(time.Second * C.Config.QuestionTime)
 		go func() {
 			for _ = range C.HintTicker.C {
-				C.GameInstance.NextHint()
-				C.sendMessage(C.GameInstance.CurrentHint.Stars)
+				C.Game.NextHint()
+				C.sendMessage(C.Game.CurrentHint.Stars)
 			}
 		}()
 		go func() {
 			<-C.QuestionTimer.C
-			C.sendMessage(C.GameInstance.CurrentQuestion.Answer)
+			C.sendMessage(C.Game.CurrentQuestion.Answer)
 			C.HintTicker.Stop()
 		}()
 	}
-	C.sendMessage(C.GameInstance.CurrentQuestion.Prompt)
+	C.sendMessage(C.Game.CurrentQuestion.Prompt)
 }
 
 // HintCommand checks and returns a hint and true if it exists. Otherwise empty string and false will be returned.
-func (C *Channel) HintCommand() {
-	if C.GameInstance.CurrentHint != nil {
-		C.sendMessage(C.GameInstance.CurrentHint.Stars)
+func (C *GameInstance) HintCommand() {
+	if C.Game.CurrentHint != nil {
+		C.sendMessage(C.Game.CurrentHint.Stars)
 	}
 }
 
-func (C *Channel) ContinuousModeOn() {
+func (C *GameInstance) ContinuousModeOn() {
 	C.ContinuousMode = true
 }
 
-func (C *Channel) ContinuousModeOff() {
+func (C *GameInstance) ContinuousModeOff() {
 	C.ContinuousMode = false
 }
 
-func (C *Channel) GetPlayer(pid string) *Player {
-	return C.GameInstance.GetPlayerByPID(pid)
+func (C *GameInstance) GetPlayer(pid string) *Player {
+	return C.Game.GetPlayerByPID(pid)
 }
 
-func (C *Channel) GetStatsForPlayer(pid string) {
-	player := C.GameInstance.GetPlayerByPID(pid)
+func (C *GameInstance) GetStatsForPlayer(pid string) {
+	player := C.Game.GetPlayerByPID(pid)
 	C.sendMessage(fmt.Sprintf("%s stats - Score: %d Streak: %d", player.Name, player.Score, player.Streak))
 }
 
-func (C *Channel) sendMessage(message string) {
+func (C *GameInstance) sendMessage(message string) {
 	slackClient.API.PostMessage(C.ID, message, params)
 	// client.RTM.SendMessage(client.RTM.NewOutgoingMessage(message, C.ID))
 }
