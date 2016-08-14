@@ -7,7 +7,6 @@ import (
 
 	"github.com/dota-2-slack-bot/config"
 	"github.com/dota-2-slack-bot/logic"
-	. "github.com/dota-2-slack-bot/models"
 )
 
 // var client *c.Client = c.GetClient()
@@ -104,10 +103,6 @@ func (C *GameInstance) ContinuousModeOn() {
 
 func (C *GameInstance) ContinuousModeOff() {
 	C.ContinuousMode = false
-}
-
-func (C *GameInstance) GetPlayer(pid string) *Player {
-	return C.Game.GetPlayerByPID(pid)
 }
 
 func (C *GameInstance) GetStatsForPlayer(pid string) {
