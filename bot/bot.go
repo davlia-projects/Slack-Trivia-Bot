@@ -21,8 +21,9 @@ var (
 		HintDelay:    5,
 		QuestionTime: 30,
 	}
-	client *c.Client                   = c.GetClient()
-	params slack.PostMessageParameters = slack.NewPostMessageParameters()
+	slackClient    *c.SlackClient              = c.GetSlackClient()
+	questionClient *c.QuestionClient           = c.GetQuestionClient()
+	params         slack.PostMessageParameters = slack.NewPostMessageParameters()
 )
 
 func NewBot() *Bot {
@@ -34,7 +35,7 @@ func NewBot() *Bot {
 
 func (B *Bot) onStart() {
 	params.AsUser = true
-	channels, err := client.API.GetChannels(true)
+	channels, err := slackClient.API.GetChannels(true)
 	if err != nil {
 		log.Fatalf("error: could not retrieve list of channels (%+v)\n", err)
 	}
@@ -60,7 +61,7 @@ func (B *Bot) HandleMessageEvent(ev *slack.MessageEvent) {
 	case "!s":
 		channel.GetStatsForPlayer(ev.User)
 	case "!debug":
-		client.API.PostMessage(ev.Channel, "debug", params)
+		slackClient.API.PostMessage(ev.Channel, "debug", params)
 	default:
 		if ev.SubType == "" {
 			channel.MakeGuess(ev.Text, ev.User)
@@ -76,11 +77,11 @@ func (B *Bot) HandleChannelJoinedEvent(ev *slack.ChannelJoinedEvent) {
 
 func (B *Bot) Run() {
 	B.onStart()
-	go client.RTM.ManageConnection()
+	go slackClient.RTM.ManageConnection()
 Loop:
 	for {
 		select {
-		case msg := <-client.RTM.IncomingEvents:
+		case msg := <-slackClient.RTM.IncomingEvents:
 			switch ev := msg.Data.(type) {
 			case *slack.ConnectedEvent:
 				fmt.Printf("Connected\n")

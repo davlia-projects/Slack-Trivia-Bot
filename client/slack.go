@@ -8,23 +8,23 @@ import (
 )
 
 var (
-	once   sync.Once
-	client *Client
+	slackOnce   sync.Once
+	slackClient *SlackClient
 )
 
-type Client struct {
+type SlackClient struct {
 	API *slack.Client
 	RTM *slack.RTM
 }
 
-func GetClient() *Client {
-	once.Do(func() {
+func GetSlackClient() *SlackClient {
+	slackOnce.Do(func() {
 		apiKey := os.Getenv("BOT_API_KEY")
 		api := slack.New(apiKey)
-		client = &Client{
+		slackClient = &SlackClient{
 			API: api,
 			RTM: api.NewRTM(),
 		}
 	})
-	return client
+	return slackClient
 }

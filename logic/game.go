@@ -9,27 +9,8 @@ import (
 	"strings"
 
 	"github.com/dota-2-slack-bot/config"
+	. "github.com/dota-2-slack-bot/models"
 )
-
-type Player struct {
-	ID      string
-	Name    string
-	Score   int
-	Streak  int
-	Guesses int
-}
-
-type Question struct {
-	Category string
-	Prompt   string
-	Answer   string
-}
-
-type Hint struct {
-	Stars    string
-	Count    int
-	Revealed int
-}
 
 type Game struct {
 	CurrentQuestion  *Question
@@ -54,15 +35,6 @@ func NewGame(conf config.Config) (*Game, error) {
 		Players: map[string]*Player{},
 	}
 	return g, nil
-}
-
-func (G *Game) NewQuestion() error {
-	G.CurrentQuestion = &Question{
-		Category: "Testing",
-		Prompt:   "Prompt",
-		Answer:   "Answer",
-	}
-	return nil
 }
 
 func (G *Game) NextHint() error {
@@ -115,18 +87,13 @@ func (G *Game) ResetGuesses() {
 	}
 }
 
-func (G *Game) NewRound() error {
+func (G *Game) Reset() {
 	if G.CurrentQuestion != nil {
 		G.PastQuestions = append(G.PastQuestions, G.CurrentQuestion)
 	}
 	G.CurrentQuestion = nil
 	G.CurrentHint = nil
 	G.ResetGuesses()
-	err := G.NewQuestion()
-	if err != nil {
-		log.Fatalf("error: could not get new question (%+v)\n", err)
-	}
-	return err
 }
 
 func (G *Game) MakeGuess(guess string) (isCorrect bool) {

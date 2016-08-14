@@ -7,6 +7,7 @@ import (
 
 	"github.com/dota-2-slack-bot/config"
 	"github.com/dota-2-slack-bot/logic"
+	. "github.com/dota-2-slack-bot/models"
 )
 
 // var client *c.Client = c.GetClient()
@@ -40,7 +41,7 @@ func (C *Channel) MakeGuess(guess, pid string) {
 		return
 	}
 	if C.GameInstance.GetPlayerByPID(pid) == nil {
-		user, err := client.API.GetUserInfo(pid)
+		user, err := slackClient.API.GetUserInfo(pid)
 		if err != nil {
 			fmt.Printf("error: could not get user info %d (%+v)\n", pid, err)
 		}
@@ -71,7 +72,8 @@ func (C *Channel) MakeGuess(guess, pid string) {
 // QuestionCommand returns a question if it exists. Otherwise it will start a new round create one.
 func (C *Channel) QuestionCommand() {
 	if C.GameInstance.CurrentQuestion == nil {
-		C.GameInstance.NewRound()
+		C.GameInstance.Reset()
+		C.GameInstance.CurrentQuestion = questionClient.NewQuestion()
 		C.HintTicker = time.NewTicker(time.Second * C.Config.HintDelay)
 		C.QuestionTimer = time.NewTimer(time.Second * C.Config.QuestionTime)
 		go func() {
@@ -104,7 +106,7 @@ func (C *Channel) ContinuousModeOff() {
 	C.ContinuousMode = false
 }
 
-func (C *Channel) GetPlayer(pid string) *logic.Player {
+func (C *Channel) GetPlayer(pid string) *Player {
 	return C.GameInstance.GetPlayerByPID(pid)
 }
 
@@ -114,6 +116,6 @@ func (C *Channel) GetStatsForPlayer(pid string) {
 }
 
 func (C *Channel) sendMessage(message string) {
-	client.API.PostMessage(C.ID, message, params)
+	slackClient.API.PostMessage(C.ID, message, params)
 	// client.RTM.SendMessage(client.RTM.NewOutgoingMessage(message, C.ID))
 }
