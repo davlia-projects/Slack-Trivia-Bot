@@ -24,6 +24,7 @@ type GameInstance struct {
 	HintTicker     *time.Ticker
 	QuestionTimer  *time.Timer
 	Config         config.Config
+	HintTimeStamp  string
 }
 
 func NewGameInstance(conf config.Config, name, id string) *GameInstance {
@@ -78,18 +79,27 @@ func (C *GameInstance) MakeGuess(guess, pid string) {
 func (C *GameInstance) QuestionCommand() {
 	if C.Game.CurrentQuestion == nil {
 		C.Game.Reset()
-		C.Game.CurrentQuestion = questionClient.NewQuestion()
+		question, err := questionClient.NewQuestion()
+		if err != nil {
+			return
+		}
+		C.Game.CurrentQuestion = question
 		C.HintTicker = time.NewTicker(time.Second * C.Config.HintDelay)
 		C.QuestionTimer = time.NewTimer(time.Second * C.Config.QuestionTime)
 		go func() {
 			for _ = range C.HintTicker.C {
 				C.Game.NextHint()
-				C.sendMessage(C.Game.CurrentHint.Stars)
+				if C.HintTimeStamp == "" { //first hint sent
+					timestamp, _ := C.sendMessage(C.Game.CurrentHint.Stars)
+					C.HintTimeStamp = timestamp
+				} else {
+					C.updateMessage(C.Game.CurrentHint.Stars, C.HintTimeStamp)
+				}
 			}
 		}()
 		go func() {
 			<-C.QuestionTimer.C
-			C.sendMessage(C.Game.CurrentQuestion.Answer)
+			C.sendMessage(fmt.Sprintf("Time is up! The correct answer is %s", C.Game.CurrentQuestion.Answer))
 			C.HintTicker.Stop()
 		}()
 	}
@@ -99,7 +109,8 @@ func (C *GameInstance) QuestionCommand() {
 // HintCommand checks and returns a hint and true if it exists. Otherwise empty string and false will be returned.
 func (C *GameInstance) HintCommand() {
 	if C.Game.CurrentHint != nil {
-		C.sendMessage(C.Game.CurrentHint.Stars)
+		timestamp, _ := C.sendMessage(C.Game.CurrentHint.Stars)
+		C.HintTimeStamp = timestamp
 	}
 }
 
@@ -116,7 +127,18 @@ func (C *GameInstance) GetStatsForPlayer(pid string) {
 	C.sendMessage(fmt.Sprintf("%s stats - Score: %d Streak: %d", player.Name, player.Score, player.Streak))
 }
 
-func (C *GameInstance) sendMessage(message string) {
-	slackClient.API.PostMessage(C.ID, message, params)
-	// client.RTM.SendMessage(client.RTM.NewOutgoingMessage(message, C.ID))
+func (C *GameInstance) sendMessage(message string) (string, error) {
+	_, timestamp, err := slackClient.API.PostMessage(C.ID, message, params)
+	if err != nil {
+		fmt.Printf("error: could not post message to channel (%+v)\n", err)
+	}
+	return timestamp, err
+}
+
+func (C *GameInstance) updateMessage(message, timestamp string) error {
+	_, _, _, err := slackClient.API.UpdateMessage(C.ID, timestamp, message)
+	if err != nil {
+		fmt.Printf("error: could not update message to channel (%+v)\n", err)
+	}
+	return err
 }

@@ -48,6 +48,9 @@ func (B *Bot) onStart() {
 func (B *Bot) HandleMessageEvent(ev *slack.MessageEvent) {
 	fmt.Printf("%+v\n", ev)
 	channel := B.Channels[ev.Channel]
+	if ev.BotID != "" { // ignore bots
+		return
+	}
 	switch ev.Text {
 	case "!q":
 		channel.QuestionCommand()

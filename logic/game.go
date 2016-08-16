@@ -38,7 +38,7 @@ func (G *Game) NextHint() error {
 		if err != nil {
 			log.Fatalf("regex did not compile\n")
 		}
-		stars := string(pat.ReplaceAll([]byte(question.Prompt), []byte("*")))
+		stars := string(pat.ReplaceAll([]byte(question.Answer), []byte("*")))
 		hint := &Hint{
 			Stars:    stars,
 			Count:    1,
@@ -55,6 +55,7 @@ func (G *Game) NextHint() error {
 		for t := range hintTokens {
 			hintChars := strings.Split(hintTokens[t], "")
 			ansChars := strings.Split(ansTokens[t], "")
+			fmt.Printf("%+v %+v\n", hintChars, ansChars)
 			for {
 				index := rand.Intn(len(hintChars))
 				if hintChars[index] == "*" {
